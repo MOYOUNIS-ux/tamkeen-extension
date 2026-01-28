@@ -1,12 +1,13 @@
 // ==UserScript==
-// @name         Tamkeen Payment Fixer
+// @name         Tamkeen Pro Online
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Auto fill notes in Tamkeen
-// @author       You
-// @match        *://*.tamkeenapp.com/*
+// @version      1.3
+// @description  تعبئة الملاحظات تلقائياً في نظام تمكين
+// @author       MOYOUNIS
+// @match        https://sye.tamkeenapp.com/*
+// @match        https://*.tamkeenapp.com/*
 // @grant        none
-// @run-at       document-start
+// @run-at       document-end
 // ==/UserScript==
 
 (function() {
@@ -15,7 +16,7 @@
     let selectedPaymentNote = "";
 
     function autoFillTamkeen() {
-        // البحث عن قائمة الدفع
+        // 1. البحث عن قائمة طرق الدفع
         const paymentSelect = document.querySelector('select[ng-model="transaction.info.method"]');
         
         if (paymentSelect && !paymentSelect.dataset.modified) {
@@ -32,6 +33,7 @@
                 { label: "Client to Client Transfer", val: "string:balance", note: "Method: Client to Client Transfer" }
             ];
 
+            // إعادة بناء القائمة
             paymentSelect.innerHTML = '';
             options.forEach(opt => {
                 let o = document.createElement('option');
@@ -41,33 +43,36 @@
                 paymentSelect.add(o);
             });
 
+            // مراقبة التغيير في القائمة
             paymentSelect.addEventListener('change', function() {
                 const selected = paymentSelect.options[paymentSelect.selectedIndex];
                 selectedPaymentNote = selected.getAttribute('data-note') || "";
                 injectNow();
             });
+
             paymentSelect.dataset.modified = "true";
         }
+
         injectNow();
     }
 
     function injectNow() {
-        // جربنا هنا كل الاحتمالات لاسم الخانة (المفرد والجمع)
-        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]') || 
-                         document.querySelector('textarea[ng-model="transaction.info.notes"]');
+        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]');
 
         if (notesBox && selectedPaymentNote !== "") {
             if (notesBox.value !== selectedPaymentNote) {
                 notesBox.value = selectedPaymentNote;
-                // إرسال تنبيه للنظام أن القيمة تغيرت
-                const event = new Event('input', { bubbles: true });
-                notesBox.dispatchEvent(event);
-                const changeEvent = new Event('change', { bubbles: true });
-                notesBox.dispatchEvent(changeEvent);
+                
+                // تنبيه AngularJS
+                notesBox.dispatchEvent(new Event('input', { bubbles: true }));
+                notesBox.dispatchEvent(new Event('change', { bubbles: true }));
+                notesBox.dispatchEvent(new Event('blur', { bubbles: true }));
+                
+                console.log("Success: Note Injected -> " + selectedPaymentNote);
             }
         }
     }
 
-    // فحص دوري كل 200 ملي ثانية لضمان الاستجابة اللحظية
-    setInterval(autoFillTamkeen, 200);
+    // الفحص الدوري
+    setInterval(autoFillTamkeen, 300);
 })();
