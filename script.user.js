@@ -1,48 +1,69 @@
 // ==UserScript==
-// @name         Tamkeen Pro Ultra Max
+// @name         Tamkeen Pro
 // @namespace    http://tampermonkey.net/
-// @version      3.5
-// @description  إصلاح شامل واختيارات دفع جديدة
-// @author       MOYOUNIS
+// @version      1.2
+// @description  نفس كود الإضافة الأصلي الخاص بك
+// @author       You
 // @match        https://sye.tamkeenapp.com/*
 // @grant        none
-// @run-at       document-start
+// @run-at       document-idle
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    const options = [
-        { label: "Cash", val: "string:cache", note: "Cash Payment" },
-        { label: "Credit card", val: "string:credit-card", note: "Credit card Payment" },
-        { label: "InstaPay", val: "string:bank", note: "Method: InstaPay" },
-        { label: "VC-01001883884", val: "string:cheque", note: "Wallet: 01001883884" },
-        { label: "VC-01022850171", val: "string:cheque", note: "Wallet: 01022850171" },
-        { label: "VC-01064223325", val: "string:cheque", note: "Wallet: 01064223325" },
-        { label: "VC-01068416733", val: "string:cheque", note: "Wallet: 01068416733" },
-        { label: "EC-01111327387", val: "string:cheque", note: "Wallet: 01111327387" },
-        { label: "Client Balance", val: "string:balance", note: "Method: Client Balance" },
-        { label: "Client to Client Transfer", val: "string:balance", note: "Method: Client to Client Transfer" }
-    ];
+    // كودك الأصلي يبدأ من هنا
+    let selectedPaymentNote = "";
 
-    function inject() {
-        const select = document.querySelector('select[ng-model*="method"]');
-        const noteBox = document.querySelector('textarea[ng-model*="note"]');
+    function autoFillTamkeen() {
+        const paymentSelect = document.querySelector('select[ng-model="transaction.info.method"]');
+        
+        if (paymentSelect && !paymentSelect.dataset.modified) {
+            const options = [
+                { label: "Cash", val: "string:cache", note: "Cash Payment" },
+                { label: "Credit card", val: "string:credit-card", note: "Credit card Payment" },
+                { label: "InstaPay", val: "string:bank", note: "Method: InstaPay" },
+                { label: "VC-01001883884", val: "string:cheque", note: "Wallet: 01001883884" },
+                { label: "VC-01022850171", val: "string:cheque", note: "Wallet: 01022850171" },
+                { label: "VC-01064223325", val: "string:cheque", note: "Wallet: 01064223325" },
+                { label: "VC-01068416733", val: "string:cheque", note: "Wallet: 01068416733" },
+                { label: "EC-01111327387", val: "string:cheque", note: "Wallet: 01111327387" },
+                { label: "Client Balance", val: "string:balance", note: "Method: Client Balance" },
+                { label: "Client to Client Transfer", val: "string:balance", note: "Method: Client to Client Transfer" }
+            ];
 
-        if (select && !select.dataset.loaded) {
-            select.innerHTML = options.map(opt => `<option value="${opt.val}" data-note="${opt.note}">${opt.label}</option>`).join('');
-            select.addEventListener('change', () => {
-                const note = select.options[select.selectedIndex].getAttribute('data-note');
-                if (noteBox) {
-                    noteBox.value = note;
-                    noteBox.dispatchEvent(new Event('input', { bubbles: true }));
-                    noteBox.dispatchEvent(new Event('change', { bubbles: true }));
-                }
+            paymentSelect.innerHTML = '';
+            options.forEach(opt => {
+                let o = document.createElement('option');
+                o.text = opt.label;
+                o.value = opt.val;
+                o.setAttribute('data-note', opt.note);
+                paymentSelect.add(o);
             });
-            select.dataset.loaded = "true";
+
+            paymentSelect.addEventListener('change', function() {
+                const selected = paymentSelect.options[paymentSelect.selectedIndex];
+                selectedPaymentNote = selected.getAttribute('data-note') || "";
+                injectNow();
+            });
+
+            paymentSelect.dataset.modified = "true";
+        }
+        injectNow();
+    }
+
+    function injectNow() {
+        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]');
+        if (notesBox && selectedPaymentNote !== "") {
+            if (notesBox.value !== selectedPaymentNote) {
+                notesBox.value = selectedPaymentNote;
+                notesBox.dispatchEvent(new Event('input', { bubbles: true }));
+                notesBox.dispatchEvent(new Event('change', { bubbles: true }));
+                notesBox.dispatchEvent(new Event('blur', { bubbles: true }));
+                console.log("Success: Note Injected -> " + selectedPaymentNote);
+            }
         }
     }
 
-    // تكرار الفحص لضمان الظهور حتى لو الصفحة بطيئة
-    setInterval(inject, 500);
+    setInterval(autoFillTamkeen, 300);
 })();
