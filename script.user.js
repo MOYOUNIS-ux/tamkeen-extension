@@ -1,14 +1,19 @@
-// ==UserScript==
+/ ==UserScript==
 // @name         Tamkeen Pro Online
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.5
 // @description  تعبئة الملاحظات تلقائياً في نظام تمكين
 // @author       MOYOUNIS
 // @match        https://sye.tamkeenapp.com/*
+// @match        http://sye.tamkeenapp.com/*
 // @match        https://*.tamkeenapp.com/*
+// @match        http://*.tamkeenapp.com/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=tamkeenapp.com
 // @grant        none
-// @run-at       document-end
+// @run-at       document-idle
 // ==/UserScript==
+
+// باقي الكود يبدأ من هنا...
 
 (function() {
     'use strict';
