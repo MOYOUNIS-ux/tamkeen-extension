@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Tamkeen Payment Fixer
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Auto fill notes in Tamkeen
 // @author       You
-// @match        https://*.tamkeenapp.com/*
+// @match        *://*.tamkeenapp.com/*
 // @grant        none
+// @run-at       document-start
 // ==/UserScript==
 
 (function() {
@@ -14,7 +15,9 @@
     let selectedPaymentNote = "";
 
     function autoFillTamkeen() {
+        // البحث عن قائمة الدفع
         const paymentSelect = document.querySelector('select[ng-model="transaction.info.method"]');
+        
         if (paymentSelect && !paymentSelect.dataset.modified) {
             const options = [
                 { label: "Cash", val: "string:cache", note: "Cash Payment" },
@@ -49,13 +52,22 @@
     }
 
     function injectNow() {
-        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]');
-        if (notesBox && selectedPaymentNote !== "" && notesBox.value !== selectedPaymentNote) {
-            notesBox.value = selectedPaymentNote;
-            notesBox.dispatchEvent(new Event('input', { bubbles: true }));
-            notesBox.dispatchEvent(new Event('change', { bubbles: true }));
+        // جربنا هنا كل الاحتمالات لاسم الخانة (المفرد والجمع)
+        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]') || 
+                         document.querySelector('textarea[ng-model="transaction.info.notes"]');
+
+        if (notesBox && selectedPaymentNote !== "") {
+            if (notesBox.value !== selectedPaymentNote) {
+                notesBox.value = selectedPaymentNote;
+                // إرسال تنبيه للنظام أن القيمة تغيرت
+                const event = new Event('input', { bubbles: true });
+                notesBox.dispatchEvent(event);
+                const changeEvent = new Event('change', { bubbles: true });
+                notesBox.dispatchEvent(changeEvent);
+            }
         }
     }
 
-    setInterval(autoFillTamkeen, 300);
+    // فحص دوري كل 200 ملي ثانية لضمان الاستجابة اللحظية
+    setInterval(autoFillTamkeen, 200);
 })();
