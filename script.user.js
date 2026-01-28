@@ -1,19 +1,16 @@
-/ ==UserScript==
-// @name         Tamkeen Pro Online
+// ==UserScript==
+// @name         Tamkeen Pro Ultra
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  تعبئة الملاحظات تلقائياً في نظام تمكين
+// @version      2.0
+// @description  تشغيل تلقائي على جميع صفحات تمكين الفرعية
 // @author       MOYOUNIS
 // @match        https://sye.tamkeenapp.com/*
 // @match        http://sye.tamkeenapp.com/*
-// @match        https://*.tamkeenapp.com/*
-// @match        http://*.tamkeenapp.com/*
+// @match        https://sye.tamkeenapp.com/finances/transactions/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tamkeenapp.com
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
-
-// باقي الكود يبدأ من هنا...
 
 (function() {
     'use strict';
@@ -21,7 +18,7 @@
     let selectedPaymentNote = "";
 
     function autoFillTamkeen() {
-        // 1. البحث عن قائمة طرق الدفع
+        // البحث عن القائمة
         const paymentSelect = document.querySelector('select[ng-model="transaction.info.method"]');
         
         if (paymentSelect && !paymentSelect.dataset.modified) {
@@ -38,7 +35,6 @@
                 { label: "Client to Client Transfer", val: "string:balance", note: "Method: Client to Client Transfer" }
             ];
 
-            // إعادة بناء القائمة
             paymentSelect.innerHTML = '';
             options.forEach(opt => {
                 let o = document.createElement('option');
@@ -48,7 +44,6 @@
                 paymentSelect.add(o);
             });
 
-            // مراقبة التغيير في القائمة
             paymentSelect.addEventListener('change', function() {
                 const selected = paymentSelect.options[paymentSelect.selectedIndex];
                 selectedPaymentNote = selected.getAttribute('data-note') || "";
@@ -57,27 +52,24 @@
 
             paymentSelect.dataset.modified = "true";
         }
-
         injectNow();
     }
 
     function injectNow() {
-        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]');
+        // جربنا هنا الاحتمالين (note و notes) احتياطياً
+        const notesBox = document.querySelector('textarea[ng-model="transaction.info.note"]') || 
+                         document.querySelector('textarea[ng-model="transaction.info.notes"]');
 
         if (notesBox && selectedPaymentNote !== "") {
             if (notesBox.value !== selectedPaymentNote) {
                 notesBox.value = selectedPaymentNote;
-                
-                // تنبيه AngularJS
                 notesBox.dispatchEvent(new Event('input', { bubbles: true }));
                 notesBox.dispatchEvent(new Event('change', { bubbles: true }));
                 notesBox.dispatchEvent(new Event('blur', { bubbles: true }));
-                
-                console.log("Success: Note Injected -> " + selectedPaymentNote);
             }
         }
     }
 
-    // الفحص الدوري
-    setInterval(autoFillTamkeen, 300);
+    // فحص سريع جداً كل 200 ملي ثانية عشان يلحق التغييرات في اللينك
+    setInterval(autoFillTamkeen, 200);
 })();
