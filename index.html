@@ -16,36 +16,30 @@
         * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 12px; font-size: 15px; }
         
-        /* Navigation Tabs */
         .nav-tabs { display: flex; gap: 4px; margin-bottom: 16px; background: #e2e8f0; padding: 4px; border-radius: 10px; overflow-x: auto; }
         .tab-btn { flex: 1; padding: 10px 4px; border: none; background: transparent; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; white-space: nowrap; }
         .tab-btn.active { background: var(--card); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
-        /* App Containers */
         .page { display: none; background: var(--card); padding: 16px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); }
         .page.active { display: block; }
         
-        /* Form Controls */
         .form-group { margin-bottom: 14px; }
         label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
         input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
         input:focus, select:focus { border-color: var(--primary); }
         
-        /* Dynamic Multi-item list */
         .item-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .item-row select { flex: 2; }
         .item-row input[type="number"] { flex: 1; }
         .btn-remove { background: #ef4444; color: white; border: none; border-radius: 6px; width: 32px; height: 36px; cursor: pointer; font-weight: bold; }
         .btn-add { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 14px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
         
-        /* Action Buttons */
         .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; }
         .btn-submit:hover { background: var(--primary-hover); }
         .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
         
-        .total-badge { background: #eff6ff; color: var(--primary); padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; border: 1px dashed var(--primary); }
+        .total-badge { background: #eff6ff; color: var(--primary); padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; border: 1px dashed var(--primary); line-height: 1.6; }
 
-        /* Settings Lists Style */
         .list-manager { list-style: none; padding: 0; margin: 10px 0; max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
         .list-manager li { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border); }
         .list-manager li:last-child { border-bottom: none; }
@@ -59,7 +53,6 @@
 
     <div id="sync-status" class="sync-status">جاري التزامن مع السيرفر...</div>
 
-    <!-- Tabs Navigation -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchPage('emp-page', this)">الموظفين</button>
         <button class="tab-btn" onclick="switchPage('guest-page', this)">الضيوف</button>
@@ -119,38 +112,52 @@
             </select>
         </div>
 
+        <!-- حقول الكرتونة -->
         <div id="box-inputs" style="display: none;">
             <div class="form-group">
-                <label>عدد الوحدات داخل الكرتونة الواحدة:</label>
-                <input type="number" id="items-per-box" value="12" oninput="calcTotalUnits()">
+                <label>عدد القطع داخل الكرتونة الواحدة:</label>
+                <input type="number" id="items-per-box" value="12" min="1" oninput="calcTotalUnits()">
             </div>
             <div class="form-group">
                 <label>عدد الكراتين:</label>
-                <input type="number" id="box-count" value="1" oninput="calcTotalUnits()">
+                <input type="number" id="box-count" value="1" min="1" oninput="calcTotalUnits()">
             </div>
         </div>
 
+        <!-- حقول القطعة الفردية -->
         <div id="single-inputs">
             <div class="form-group">
-                <label>عدد الوحدات:</label>
-                <input type="number" id="single-count" value="1" oninput="calcTotalUnits()">
+                <label>عدد الوحدات / القطع:</label>
+                <input type="number" id="single-count" value="1" min="1" oninput="calcTotalUnits()">
             </div>
         </div>
 
+        <!-- حقول الوزن -->
         <div id="weight-inputs" style="display: none;">
             <div class="form-group" style="display: flex; gap: 8px;">
                 <div style="flex: 1;">
                     <label>الكيلو (Kg):</label>
-                    <input type="number" id="weight-kg" value="1" min="0" oninput="calcTotalUnits()">
+                    <input type="number" id="weight-kg" value="0" min="0" oninput="calcTotalUnits()">
                 </div>
                 <div style="flex: 1;">
                     <label>الجرام (Gram):</label>
-                    <input type="number" id="weight-g" value="0" min="0" step="50" oninput="calcTotalUnits()">
+                    <input type="number" id="weight-g" value="500" min="0" step="50" oninput="calcTotalUnits()">
                 </div>
             </div>
         </div>
 
-        <div class="total-badge" id="total-units-display">إجمالي الكمية: 1 قطعة</div>
+        <!-- حقل السعر الإجمالي -->
+        <div class="form-group">
+            <label id="unit-price-label">المبلغ المدفوع كلياً (ج.م):</label>
+            <input type="number" id="pur-price" placeholder="أدخل إجمالي ما تم دفعه" min="0" step="0.5" oninput="calcTotalUnits()">
+        </div>
+
+        <!-- ملخص الحسابات -->
+        <div class="total-badge" id="total-units-display">
+            إجمالي الكمية: 0<br>
+            سعر الوحدة الواحدة: 0 ج.م<br>
+            <strong>الإجمالي النهائي: 0 ج.م</strong>
+        </div>
 
         <button class="btn-submit" onclick="submitPurchases(this)" style="margin-top: 15px;">تسجيل المشتريات</button>
     </div>
@@ -176,7 +183,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLeaNDSJDKDBdhWFTIadS4SFkW4QA0nc6Jg7rlEm8G8jdZ9NtdhqkeuQtk2a4k_Vnb2w/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz73dBm0q-kweUE6c14FC8ROaWVhcbZ-qHIrmP4UnKSMsUzBXxDw1aFtYYk1JW2lmCDqQ/exec";
 
         let employees = [];
         let materials = [];
@@ -364,31 +371,59 @@
             document.getElementById('box-inputs').style.display = (unit === 'box') ? 'block' : 'none';
             document.getElementById('single-inputs').style.display = (unit === 'single') ? 'block' : 'none';
             document.getElementById('weight-inputs').style.display = (unit === 'weight') ? 'block' : 'none';
+
             calcTotalUnits();
         }
 
         function calcTotalUnits() {
             const unit = document.getElementById('pur-unit').value;
-            let total = 0;
+            // المبلغ المدفوع إجمالياً للمشتريات
+            const totalPrice = parseFloat(document.getElementById('pur-price').value) || 0;
+            
+            let totalUnits = 0;
+            let unitPiecePrice = 0;
             let displayText = "";
 
             if (unit === 'box') {
-                const perBox = parseFloat(document.getElementById('items-per-box').value) || 0;
+                const perBox = parseFloat(document.getElementById('items-per-box').value) || 1;
                 const boxes = parseFloat(document.getElementById('box-count').value) || 0;
-                total = perBox * boxes;
-                displayText = `إجمالي الكمية: ${total} قطعة`;
-            } else if (unit === 'weight') {
+                totalUnits = perBox * boxes;
+                unitPiecePrice = totalUnits > 0 ? (totalPrice / totalUnits) : 0;
+                
+                displayText = `إجمالي عدد الكراتين: ${boxes}<br>` +
+                              `إجمالي القطع: ${totalUnits} قطعة<br>` +
+                              `تكلفة القطعة الواحدة: ${unitPiecePrice.toFixed(2)} ج.م<br>` +
+                              `<strong>الإجمالي النهائي المدفوع: ${totalPrice.toFixed(2)} ج.م</strong>`;
+            } 
+            else if (unit === 'weight') {
                 const kg = parseFloat(document.getElementById('weight-kg').value) || 0;
                 const g = parseFloat(document.getElementById('weight-g').value) || 0;
-                total = kg + (g / 1000);
-                displayText = `إجمالي الوزن: ${total} كيلو`;
-            } else {
-                total = parseFloat(document.getElementById('single-count').value) || 0;
-                displayText = `إجمالي الكمية: ${total} قطعة`;
+                totalUnits = kg + (g / 1000);
+                // حساب سعر الكيلو المستخرج من التكلفة الإجمالية والوزن
+                const pricePerKg = totalUnits > 0 ? (totalPrice / totalUnits) : 0;
+                unitPiecePrice = pricePerKg;
+
+                displayText = `إجمالي الوزن: ${totalUnits.toFixed(3)} كيلو<br>` +
+                              `سعر الكيلو المحسوب: ${pricePerKg.toFixed(2)} ج.م<br>` +
+                              `<strong>الإجمالي النهائي المدفوع: ${totalPrice.toFixed(2)} ج.م</strong>`;
+            } 
+            else {
+                totalUnits = parseFloat(document.getElementById('single-count').value) || 0;
+                unitPiecePrice = totalUnits > 0 ? (totalPrice / totalUnits) : 0;
+                
+                displayText = `إجمالي الكمية: ${totalUnits} قطعة<br>` +
+                              `تكلفة القطعة الواحدة: ${unitPiecePrice.toFixed(2)} ج.م<br>` +
+                              `<strong>الإجمالي النهائي المدفوع: ${totalPrice.toFixed(2)} ج.م</strong>`;
             }
 
-            document.getElementById('total-units-display').innerText = displayText;
-            return total;
+            document.getElementById('total-units-display').innerHTML = displayText;
+
+            return {
+                totalUnits: totalUnits,
+                unitPrice: totalPrice, // التكلفة الكلية المباشرة
+                unitPiecePrice: unitPiecePrice, // تكلفة الوحدة الفردية أو الكيلو
+                totalPrice: totalPrice
+            };
         }
 
         async function sendToExcel(payload, btnElement = null) {
@@ -469,7 +504,8 @@
             const singleCount = parseFloat(document.getElementById('single-count').value) || 0;
             const weightKg = parseFloat(document.getElementById('weight-kg').value) || 0;
             const weightG = parseFloat(document.getElementById('weight-g').value) || 0;
-            const totalUnits = calcTotalUnits();
+            
+            const calcResults = calcTotalUnits();
 
             sendToExcel({
                 page: 'purchases',
@@ -480,11 +516,13 @@
                 singleCount: singleCount,
                 weightKg: weightKg,
                 weightG: weightG,
-                totalUnits: totalUnits
+                totalUnits: calcResults.totalUnits,
+                unitPrice: calcResults.unitPrice,
+                unitPiecePrice: calcResults.unitPiecePrice,
+                totalPrice: calcResults.totalPrice
             }, btn);
         }
 
-        // Init App
         fetchServerData();
         addDrinkRow('emp-items-container', true);
         addDrinkRow('guest-items-container', false);
