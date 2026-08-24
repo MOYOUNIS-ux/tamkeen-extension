@@ -3,27 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tamkeen Pro Extension | إضافة تمكين</title>
+    <title>نظام إدارة المشروبات والمشتريات</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
-        h1 { color: #2c3e50; }
-        p { color: #7f8c8d; line-height: 1.6; }
-        .btn { display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; transition: 0.3s; }
-        .btn:hover { background: #2ecc71; transform: translateY(-3px); }
-        .step { font-size: 0.8rem; color: #95a5a6; margin-top: 20px; }
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 12px; font-size: 15px; }
+        
+        /* Navigation Tabs */
+        .nav-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #e2e8f0; padding: 4px; border-radius: 10px; }
+        .tab-btn { flex: 1; padding: 10px 4px; border: none; background: transparent; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; }
+        .tab-btn.active { background: var(--card); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        /* App Containers */
+        .page { display: none; background: var(--card); padding: 16px; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .page.active { display: block; }
+        
+        /* Form Controls */
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        /* Dynamic Multi-item list */
+        .item-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .item-row select { flex: 2; }
+        .item-row input[type="number"] { flex: 1; }
+        .btn-remove { background: #ef4444; color: white; border: none; border-radius: 6px; width: 32px; height: 36px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 14px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        
+        /* Action Buttons */
+        .btn-submit { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background: var(--primary-hover); }
+        .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+        
+        .total-badge { background: #eff6ff; color: var(--primary); padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; border: 1px dashed var(--primary); }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>إضافة تمكين المحترفة 🚀</h1>
-        <p>لتوفير الوقت ومجهود كتابة الملاحظات يدوياً في نظام تمكين.</p>
-        
-        <a href="https://raw.githubusercontent.com/MOYOUNIS-ux/tamkeen-extension/main/script.user.js" class="btn">اضغط هنا لتثبيت الإضافة</a>
-        
-        <div class="step">
-            * تأكد من تثبيت إضافة <b>Tampermonkey</b> أولاً على متصفحك.
-        </div>
+
+    <!-- Tabs Navigation -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchPage('emp-page', this)">الموظفين</button>
+        <button class="tab-btn" onclick="switchPage('guest-page', this)">الضيوف</button>
+        <button class="tab-btn" onclick="switchPage('purchase-page', this)">المشتريات</button>
     </div>
+
+    <!-- 1. صفحة الموظفين -->
+    <div id="emp-page" class="page active">
+        <h2>طلب مشروبات للموظفين</h2>
+        <div class="form-group">
+            <label>اختر الموظف:</label>
+            <select id="emp-name">
+                <option value="">-- اختر موظف --</option>
+                <option>أحمد محمود</option>
+                <option>محمد يونس</option>
+                <option>سارة علي</option>
+                <option>عمر خالد</option>
+                <option>فاطمة حسن</option>
+                <option>إبراهيم سيد</option>
+                <option>منى عبد الله</option>
+                <option>يوسف أحمد</option>
+                <option>دينا مصطفى</option>
+                <option>كريم عادل</option>
+            </select>
+        </div>
+
+        <label>المشروبات:</label>
+        <div id="emp-items-container"></div>
+        <button type="button" class="btn-add" onclick="addDrinkRow('emp-items-container', true)">+ إضافة مشروب آخر</button>
+
+        <button class="btn-submit" onclick="submitEmployees(this)">إرسال الطلب للأكسيل</button>
+    </div>
+
+    <!-- 2. صفحة الضيوف -->
+    <div id="guest-page" class="page">
+        <h2>مشروبات الضيوف (مجاني)</h2>
+        <div class="form-group">
+            <label>رقم الإيصال:</label>
+            <input type="number" id="guest-receipt" placeholder="أدخل رقم الإيصال">
+        </div>
+        <div class="form-group">
+            <label>اسم الضيف:</label>
+            <input type="text" id="guest-name" placeholder="أدخل اسم الضيف">
+        </div>
+
+        <label>المشروبات (بدون سعر):</label>
+        <div id="guest-items-container"></div>
+        <button type="button" class="btn-add" onclick="addDrinkRow('guest-items-container', false)">+ إضافة مشروب آخر</button>
+
+        <button class="btn-submit" onclick="submitGuests(this)">إرسال الطلب للأكسيل</button>
+    </div>
+
+    <!-- 3. صفحة المشتريات -->
+    <div id="purchase-page" class="page">
+        <h2>تسجيل المشتريات والتموين</h2>
+        <div class="form-group">
+            <label>اسم الخامة:</label>
+            <select id="pur-item">
+                <option value="">-- اختر الخامة --</option>
+                <option>مياه معدنية</option>
+                <option>قهوة بن بني</option>
+                <option>شاي فتلة</option>
+                <option>سكر</option>
+                <option>حليب كامل الدسم</option>
+                <option>أكواب ورقية</option>
+                <option>نعناع</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>وحدة القياس / الفئة:</label>
+            <select id="pur-unit" onchange="togglePurchaseUnit()">
+                <option value="single">وحدة فردية (بالقطعة / الكيس)</option>
+                <option value="box">بالكرتونة / الطرد</option>
+            </select>
+        </div>
+
+        <div id="box-inputs" style="display: none;">
+            <div class="form-group">
+                <label>عدد الوحدات داخل الكرتونة الواحدة:</label>
+                <input type="number" id="items-per-box" value="12" oninput="calcTotalUnits()">
+            </div>
+            <div class="form-group">
+                <label>عدد الكراتين:</label>
+                <input type="number" id="box-count" value="1" oninput="calcTotalUnits()">
+            </div>
+        </div>
+
+        <div id="single-inputs">
+            <div class="form-group">
+                <label>عدد الوحدات:</label>
+                <input type="number" id="single-count" value="1" oninput="calcTotalUnits()">
+            </div>
+        </div>
+
+        <div class="total-badge" id="total-units-display">إجمالي عدد الوحدات: 1</div>
+
+        <button class="btn-submit" onclick="submitPurchases(this)" style="margin-top: 15px;">تسجيل المشتريات</button>
+    </div>
+
+    <script>
+        // الرابط الجديد الخاص بك
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLz2wRatp_GtT8zg2-PlG6Qx1xuDPIYJb5yXN-7ud14nB1kWi-i0A0B8n_4e9SmdFTIA/exec";
+
+        const DRINKS_LIST = [
+            { name: "شاي كشري", price: 10 },
+            { name: "شاي فتلة", price: 12 },
+            { name: "قهوة مظبوط", price: 20 },
+            { name: "قهوة عميد", price: 25 },
+            { name: "إسبريسو", price: 25 },
+            { name: "كابتشينو", price: 30 },
+            { name: "لاتيه", price: 30 },
+            { name: "ميكاتو", price: 25 },
+            { name: "نسكافيه 3 في 1", price: 15 },
+            { name: "ينسون", price: 10 },
+            { name: "نعناع طازج", price: 10 },
+            { name: "كركديه ساخن/بارد", price: 15 },
+            { name: "مياه معدنية صغيرة", price: 7 },
+            { name: "مياه معدنية كبيرة", price: 12 },
+            { name: "عصير برتقال طازج", price: 25 }
+        ];
+
+        function switchPage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function addDrinkRow(containerId, showPrice) {
+            const container = document.getElementById(containerId);
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            
+            let optionsHtml = DRINKS_LIST.map((d, index) => 
+                `<option value="${index}">${d.name} ${showPrice ? '(' + d.price + ' ج.م)' : ''}</option>`
+            ).join('');
+
+            row.innerHTML = `
+                <select class="drink-select">${optionsHtml}</select>
+                <input type="number" class="drink-qty" value="1" min="1" placeholder="الكمية">
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function togglePurchaseUnit() {
+            const unit = document.getElementById('pur-unit').value;
+            if (unit === 'box') {
+                document.getElementById('box-inputs').style.display = 'block';
+                document.getElementById('single-inputs').style.display = 'none';
+            } else {
+                document.getElementById('box-inputs').style.display = 'none';
+                document.getElementById('single-inputs').style.display = 'block';
+            }
+            calcTotalUnits();
+        }
+
+        function calcTotalUnits() {
+            const unit = document.getElementById('pur-unit').value;
+            let total = 0;
+            if (unit === 'box') {
+                const perBox = parseFloat(document.getElementById('items-per-box').value) || 0;
+                const boxes = parseFloat(document.getElementById('box-count').value) || 0;
+                total = perBox * boxes;
+            } else {
+                total = parseFloat(document.getElementById('single-count').value) || 0;
+            }
+            document.getElementById('total-units-display').innerText = `إجمالي عدد الوحدات: ${total}`;
+            return total;
+        }
+
+        async function sendToExcel(payload, btnElement) {
+            const originalText = btnElement.innerText;
+            btnElement.disabled = true;
+            btnElement.innerText = "جاري الإرسال...";
+
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payload)
+                });
+                alert("تم تسجيل البيانات بنجاح في الشيت أونلاين!");
+            } catch (err) {
+                alert("حدث خطأ أثناء الاتصال: " + err.message);
+            } finally {
+                btnElement.disabled = false;
+                btnElement.innerText = originalText;
+            }
+        }
+
+        function submitEmployees(btn) {
+            const empName = document.getElementById('emp-name').value;
+            if (!empName) return alert('برجاء اختيار اسم الموظف');
+
+            const rows = document.querySelectorAll('#emp-items-container .item-row');
+            if (rows.length === 0) return alert('برجاء إضافة مشروب واحد على الأقل');
+
+            const items = [];
+            rows.forEach(r => {
+                const drinkIndex = r.querySelector('.drink-select').value;
+                const qty = parseFloat(r.querySelector('.drink-qty').value) || 1;
+                items.push({
+                    name: DRINKS_LIST[drinkIndex].name,
+                    price: DRINKS_LIST[drinkIndex].price,
+                    qty: qty
+                });
+            });
+
+            sendToExcel({ page: 'employees', employeeName: empName, items: items }, btn);
+        }
+
+        function submitGuests(btn) {
+            const receiptNo = document.getElementById('guest-receipt').value;
+            const guestName = document.getElementById('guest-name').value;
+            if (!receiptNo || !guestName) return alert('برجاء كتابة رقم الإيصال واسم الضيف');
+
+            const rows = document.querySelectorAll('#guest-items-container .item-row');
+            if (rows.length === 0) return alert('برجاء إضافة مشروب واحد على الأقل');
+
+            const items = [];
+            rows.forEach(r => {
+                const drinkIndex = r.querySelector('.drink-select').value;
+                const qty = parseFloat(r.querySelector('.drink-qty').value) || 1;
+                items.push({
+                    name: DRINKS_LIST[drinkIndex].name,
+                    qty: qty
+                });
+            });
+
+            sendToExcel({ page: 'guests', receiptNo: receiptNo, guestName: guestName, items: items }, btn);
+        }
+
+        function submitPurchases(btn) {
+            const itemName = document.getElementById('pur-item').value;
+            if (!itemName) return alert('برجاء اختيار اسم الخامة');
+
+            const unitType = document.getElementById('pur-unit').value;
+            const itemsPerBox = parseFloat(document.getElementById('items-per-box').value) || 1;
+            const boxCount = parseFloat(document.getElementById('box-count').value) || 0;
+            const singleCount = parseFloat(document.getElementById('single-count').value) || 0;
+            const totalUnits = calcTotalUnits();
+
+            sendToExcel({
+                page: 'purchases',
+                itemName: itemName,
+                unitType: unitType,
+                itemsPerBox: itemsPerBox,
+                boxCount: boxCount,
+                singleCount: singleCount,
+                totalUnits: totalUnits
+            }, btn);
+        }
+
+        // Initialize default rows
+        addDrinkRow('emp-items-container', true);
+        addDrinkRow('guest-items-container', false);
+    </script>
 </body>
 </html>
