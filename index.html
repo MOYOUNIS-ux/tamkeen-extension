@@ -62,16 +62,25 @@
             <label>اختر الموظف:</label>
             <select id="emp-name">
                 <option value="">-- اختر موظف --</option>
-                <option>أحمد محمود</option>
-                <option>محمد يونس</option>
-                <option>سارة علي</option>
-                <option>عمر خالد</option>
-                <option>فاطمة حسن</option>
-                <option>إبراهيم سيد</option>
-                <option>منى عبد الله</option>
-                <option>يوسف أحمد</option>
-                <option>دينا مصطفى</option>
-                <option>كريم عادل</option>
+<option>حازم هجرس</option>
+    <option>يوسف عبد الخالق</option>
+    <option>أسماء أحمد إبراهيم</option>
+    <option>عمرو مجدي سعد</option>
+    <option>محمد سمير المصري</option>
+    <option>عبده الشرقاوي</option>
+    <option>مُحب سالم راغب</option>
+    <option>محمد حسن رزق</option>
+    <option>هانى عيد عبد الرحمن</option>
+    <option>أحمد فهمي أحمد</option>
+    <option>آيه جمال رشاد</option>
+    <option>سمر عبد الله عبد المطلب</option>
+    <option>زينة صلاح السيد</option>
+    <option>ياسمين علي حسين</option>
+    <option>علي عبد المنعم صابر</option>
+    <option>يوسف محمد عبد الله</option>
+    <option>أحمد السيد محمد</option>
+    <option>محمد صلاح الدين عاطف</option>
+    <option>نادر</option>
             </select>
         </div>
 
@@ -109,7 +118,7 @@
             <select id="pur-item">
                 <option value="">-- اختر الخامة --</option>
                 <option>مياه معدنية</option>
-                <option>قهوة بن بني</option>
+                <option>قهوة</option>
                 <option>شاي فتلة</option>
                 <option>سكر</option>
                 <option>حليب كامل الدسم</option>
@@ -154,21 +163,19 @@
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLz2wRatp_GtT8zg2-PlG6Qx1xuDPIYJb5yXN-7ud14nB1kWi-i0A0B8n_4e9SmdFTIA/exec";
 
         const DRINKS_LIST = [
-            { name: "شاي كشري", price: 10 },
-            { name: "شاي فتلة", price: 12 },
-            { name: "قهوة مظبوط", price: 20 },
-            { name: "قهوة عميد", price: 25 },
-            { name: "إسبريسو", price: 25 },
-            { name: "كابتشينو", price: 30 },
-            { name: "لاتيه", price: 30 },
-            { name: "ميكاتو", price: 25 },
-            { name: "نسكافيه 3 في 1", price: 15 },
+            { name: "شاي ", price: 5 },
+            { name: "شاي اخضر", price: 10 },
+            { name: "قهوة", price: 15 },
+            { name: "قهوة اسبرسو", price: 20 },
+            { name: "قهوة بندق", price: 25 },
+            { name: "قهوة فرنساوي", price: 25 },
+            { name: "ايس كوفي", price: 35 },
+            { name: "كابتشينو", price: 25 },
+             { name: "هوت شوكليت", price: 25 }, 
+            { name: "ميكاتو", price: 25 },       
             { name: "ينسون", price: 10 },
-            { name: "نعناع طازج", price: 10 },
-            { name: "كركديه ساخن/بارد", price: 15 },
+            { name: "نعناع ", price: 10 },
             { name: "مياه معدنية صغيرة", price: 7 },
-            { name: "مياه معدنية كبيرة", price: 12 },
-            { name: "عصير برتقال طازج", price: 25 }
         ];
 
         function switchPage(pageId, btn) {
