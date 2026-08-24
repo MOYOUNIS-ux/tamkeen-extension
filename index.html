@@ -52,9 +52,12 @@
         .list-manager-actions { display: flex; gap: 6px; align-items: center; }
         .btn-sm-danger { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .btn-sm-edit { background: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .sync-status { font-size: 12px; color: #64748b; text-align: center; margin-bottom: 8px; }
     </style>
 </head>
 <body>
+
+    <div id="sync-status" class="sync-status">جاري التزامن مع السيرفر...</div>
 
     <!-- Tabs Navigation -->
     <div class="nav-tabs">
@@ -173,31 +176,10 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLz2wRatp_GtT8zg2-PlG6Qx1xuDPIYJb5yXN-7ud14nB1kWi-i0A0B8n_4e9SmdFTIA/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLeaNDSJDKDBdhWFTIadS4SFkW4QA0nc6Jg7rlEm8G8jdZ9NtdhqkeuQtk2a4k_Vnb2w/exec";
 
-        const DEFAULT_EMPLOYEES = [
-            { name: "حازم هجرس", active: true },
-            { name: "يوسف عبد الخالق", active: true },
-            { name: "أسماء أحمد إبراهيم", active: true },
-            { name: "عمرو مجدي سعد", active: true },
-            { name: "محمد سمير المصري", active: true },
-            { name: "عبده الشرقاوي", active: true },
-            { name: "مُحب سالم راغب", active: true },
-            { name: "محمد حسن رزق", active: true },
-            { name: "هانى عيد عبد الرحمن", active: true },
-            { name: "أحمد فهمي أحمد", active: true },
-            { name: "آيه جمال رشاد", active: true },
-            { name: "سمر عبد الله عبد المطلب", active: true },
-            { name: "زينة صلاح السيد", active: true },
-            { name: "ياسمين علي حسين", active: true },
-            { name: "علي عبد المنعم صابر", active: true },
-            { name: "يوسف محمد عبد الله", active: true },
-            { name: "أحمد السيد محمد", active: true },
-            { name: "محمد صلاح الدين عاطف", active: true },
-            { name: "نادر", active: true }
-        ];
-
-        const DEFAULT_MATERIALS = ["مياه معدنية", "قهوة", "شاي فتلة", "سكر", "حليب كامل الدسم", "أكواب ورقية", "نعناع"];
+        let employees = [];
+        let materials = [];
 
         const DRINKS_LIST = [
             { name: "شاي ", price: 5 },
@@ -215,13 +197,35 @@
             { name: "مياه معدنية صغيرة", price: 7 }
         ];
 
-        // Load or Init Data
-        let employees = JSON.parse(localStorage.getItem('sys_employees')) || DEFAULT_EMPLOYEES;
-        let materials = JSON.parse(localStorage.getItem('sys_materials')) || DEFAULT_MATERIALS;
+        async function fetchServerData() {
+            document.getElementById('sync-status').innerText = "جاري مزامنة القوائم من أونلاين...";
+            try {
+                let res = await fetch(GOOGLE_SCRIPT_URL);
+                let data = await res.json();
+                if (data.status === 'success') {
+                    employees = data.employees || [];
+                    materials = data.materials || [];
+                    renderAll();
+                    document.getElementById('sync-status').innerText = "تمت المزامنة أونلاين بنجاح ✔️";
+                }
+            } catch (err) {
+                document.getElementById('sync-status').innerText = "تعذر الاتصال بالسيرفر (يتم عرض البيانات المحلية)";
+            }
+        }
 
-        function saveData() {
-            localStorage.setItem('sys_employees', JSON.stringify(employees));
-            localStorage.setItem('sys_materials', JSON.stringify(materials));
+        async function syncEmployeesToServer() {
+            document.getElementById('sync-status').innerText = "جاري حفظ الموظفين أونلاين...";
+            await sendToExcel({ page: 'sync_employees', employees: employees });
+            document.getElementById('sync-status').innerText = "تم حفظ الموظفين أونلاين ✔️";
+        }
+
+        async function syncMaterialsToServer() {
+            document.getElementById('sync-status').innerText = "جاري حفظ الخامات أونلاين...";
+            await sendToExcel({ page: 'sync_materials', materials: materials });
+            document.getElementById('sync-status').innerText = "تم حفظ الخامات أونلاين ✔️";
+        }
+
+        function renderAll() {
             renderEmployeeDropdown();
             renderMaterialsDropdown();
             renderEmployeeManageList();
@@ -235,7 +239,6 @@
             btn.classList.add('active');
         }
 
-        // Render Dropdowns
         function renderEmployeeDropdown() {
             const select = document.getElementById('emp-name');
             select.innerHTML = '<option value="">-- اختر موظف --</option>';
@@ -252,7 +255,6 @@
             });
         }
 
-        // Management Lists Functions
         function renderEmployeeManageList() {
             const list = document.getElementById('emp-manage-list');
             list.innerHTML = '';
@@ -271,25 +273,28 @@
             });
         }
 
-        function toggleEmpStatus(index) {
+        async function toggleEmpStatus(index) {
             employees[index].active = !employees[index].active;
-            saveData();
+            renderAll();
+            await syncEmployeesToServer();
         }
 
-        function addNewEmployee() {
+        async function addNewEmployee() {
             const input = document.getElementById('new-emp-name');
             const name = input.value.trim();
             if (name) {
                 employees.push({ name: name, active: true });
                 input.value = '';
-                saveData();
+                renderAll();
+                await syncEmployeesToServer();
             }
         }
 
-        function deleteEmployee(index) {
+        async function deleteEmployee(index) {
             if (confirm("هل أنت تأكد من حذف هذا الموظف؟")) {
                 employees.splice(index, 1);
-                saveData();
+                renderAll();
+                await syncEmployeesToServer();
             }
         }
 
@@ -309,28 +314,31 @@
             });
         }
 
-        function addNewMaterial() {
+        async function addNewMaterial() {
             const input = document.getElementById('new-mat-name');
             const name = input.value.trim();
             if (name) {
                 materials.push(name);
                 input.value = '';
-                saveData();
+                renderAll();
+                await syncMaterialsToServer();
             }
         }
 
-        function editMaterial(index) {
+        async function editMaterial(index) {
             const newName = prompt("تعديل اسم الخامة:", materials[index]);
             if (newName && newName.trim() !== '') {
                 materials[index] = newName.trim();
-                saveData();
+                renderAll();
+                await syncMaterialsToServer();
             }
         }
 
-        function deleteMaterial(index) {
+        async function deleteMaterial(index) {
             if (confirm("هل أنت تأكد من حذف هذه الخامة؟")) {
                 materials.splice(index, 1);
-                saveData();
+                renderAll();
+                await syncMaterialsToServer();
             }
         }
 
@@ -383,10 +391,13 @@
             return total;
         }
 
-        async function sendToExcel(payload, btnElement) {
-            const originalText = btnElement.innerText;
-            btnElement.disabled = true;
-            btnElement.innerText = "جاري الإرسال...";
+        async function sendToExcel(payload, btnElement = null) {
+            let originalText = "";
+            if (btnElement) {
+                originalText = btnElement.innerText;
+                btnElement.disabled = true;
+                btnElement.innerText = "جاري الإرسال...";
+            }
 
             try {
                 await fetch(GOOGLE_SCRIPT_URL, {
@@ -395,12 +406,14 @@
                     headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(payload)
                 });
-                alert("تم تسجيل البيانات بنجاح في الشيت أونلاين!");
+                if (btnElement) alert("تم تسجيل البيانات بنجاح في الشيت أونلاين!");
             } catch (err) {
-                alert("حدث خطأ أثناء الاتصال: " + err.message);
+                if (btnElement) alert("حدث خطأ أثناء الاتصال: " + err.message);
             } finally {
-                btnElement.disabled = false;
-                btnElement.innerText = originalText;
+                if (btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.innerText = originalText;
+                }
             }
         }
 
@@ -472,7 +485,7 @@
         }
 
         // Init App
-        saveData();
+        fetchServerData();
         addDrinkRow('emp-items-container', true);
         addDrinkRow('guest-items-container', false);
     </script>
